@@ -382,6 +382,7 @@ class DynamicTodoIsland:
         completed_count = len(self.store.completed())
         total_count = len(self.store.todos)
         percent = 100 if total_count == 0 else round(completed_count / total_count * 100)
+        remaining = str(len(active))
 
         pinned = None
         if self.pinned_id:
@@ -398,7 +399,7 @@ class DynamicTodoIsland:
         if self.mode == "hidden":
             self.rounded_rect(165, 75, 295, 83, 4, fill="#101820", outline="#182630", width=1)
             self.canvas.create_line(180, 76, 280, 76, fill=ACCENT, width=1)
-        self.draw_ring(49, 41, 46, percent, f"{percent}%")
+        self.draw_ring(49, 41, 46, percent, remaining)
 
         if current:
             if is_pinned:
@@ -422,6 +423,7 @@ class DynamicTodoIsland:
         completed = self.store.completed()
         total_count = len(self.store.todos)
         percent = 100 if total_count == 0 else round(len(completed) / total_count * 100)
+        exp_remaining = str(len(active))
         current = active[0] if active else None
 
         self.draw_panel(10, 8, 590, 458, 24)
@@ -435,7 +437,7 @@ class DynamicTodoIsland:
     def draw_header(self) -> None:
         self.canvas.create_oval(28, 32, 38, 42, fill=ACCENT, outline="")
         self.canvas.create_text(48, 37, anchor="w", text="Aurora Signal", fill="#a8b0bf", font=(FONT_LATIN, 11))
-        self.canvas.create_text(300, 37, text="今日焦点", fill=TEXT, font=(FONT_UI, 12))
+        self.canvas.create_text(300, 37, text="今日待办", fill=TEXT, font=(FONT_UI, 12))
         self.canvas.create_line(238, 58, 362, 58, fill=ACCENT, width=2)
         self.canvas.create_text(552, 37, text="×", fill="#b9c1ce", font=(FONT_LATIN, 18))
         self.zone("quit", "", (534, 20, 574, 56))
@@ -456,10 +458,10 @@ class DynamicTodoIsland:
         meta_img = self.make_text_image(meta, FONT_UI, 10, "#a8b2c2")
         self.image_refs.append(meta_img)
         self.canvas.create_image(x + 20, y + 51, anchor="w", image=meta_img)
-        self.draw_ring(x2 - 48, y + 39, 54, percent, f"{percent}%")
+        self.draw_ring(x2 - 48, y + 39, 54, percent, exp_remaining)
 
     def draw_top_section(self, x: int, y: int, todos: list[Todo]) -> None:
-        self.canvas.create_text(x + 10, y, anchor="w", text="今天待办", fill=TEXT_SOFT, font=(FONT_UI, 10))
+        self.canvas.create_text(x + 10, y, anchor="w", text="待办", fill=TEXT_SOFT, font=(FONT_UI, 10))
         list_y = y + 22
         row_h = 27
         visible_count = 3
