@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import ctypes
 import json
+import threading
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from tkinter import Canvas, Entry, StringVar, Tk
 
+import pystray
 from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 
@@ -634,7 +636,7 @@ class DynamicTodoIsland:
         elif action == "add":
             self.add_todo()
         elif action == "quit":
-            self.root.destroy()
+            self.quit_app()
 
     def set_placeholder(self) -> None:
         self.entry_has_placeholder = True
@@ -686,7 +688,33 @@ class DynamicTodoIsland:
         self.root.geometry(f"+{current_x + dx}+{current_y + dy}")
         self.drag_start = (event.x_root, event.y_root)
 
+    def _make_tray_icon(self) -> Image.Image:
+        size = 32
+        image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(image)
+        pad = 5
+        draw.ellipse((pad, pad, size - pad, size - pad), fill=ACCENT)
+        return image
+
+    def _tray_show(self, _icon=None, _item=None) -> None:
+        self.root.after(0, self.reveal_compact)
+
+    def _tray_quit(self, _icon=None, _item=None) -> None:
+        self.root.after(0, self.quit_app)
+
+    def quit_app(self) -> None:
+        if hasattr(self, "tray_icon") and self.tray_icon is not None:
+            self.tray_icon.stop()
+        self.root.destroy()
+
     def run(self) -> None:
+        menu = pystray.Menu(
+            pystray.MenuItem("显示", self._tray_show, default=True),
+            pystray.MenuItem("退出", self._tray_quit),
+        )
+        self.tray_icon = pystray.Icon("todo_island", self._make_tray_icon(), "Dynamic Todo Island", menu)
+        tray_thread = threading.Thread(target=self.tray_icon.run, daemon=True)
+        tray_thread.start()
         self.root.mainloop()
 
 

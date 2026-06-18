@@ -23,6 +23,12 @@
 
 ## 运行
 
+**方式一：桌面快捷方式**
+
+将 `run.bat` 右键 →「发送到桌面」，之后双击桌面图标即可启动。
+
+**方式二：命令行**
+
 ```powershell
 cd F:\project\dynamic-todo-island
 pip install -r requirements.txt
@@ -40,9 +46,11 @@ python app.py
 - 点击输入框右侧颜色点：选择待办紧急程度。
 - 在待办区滚轮：查看更多待办。
 - 在历史区滚轮：查看更多完成历史。
+- 右键系统托盘图标：显示窗口 / 退出应用。
 
 ## 文件说明
 
 - `app.py`：完整桌面小工具。
-- `requirements.txt`：抗锯齿圆环和圆点所需的 Pillow 依赖。
-- `design-qa.md`：本次视觉改版的验证记录。
+- `run.bat`：双击启动脚本，可发送到桌面作为快捷方式。
+- `requirements.txt`：Pillow（抗锯齿图形）和 pystray（系统托盘）。
+- `design-qa.md`：视觉改版验证记录（不提交）。
