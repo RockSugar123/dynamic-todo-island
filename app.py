@@ -429,7 +429,7 @@ class DynamicTodoIsland:
         self.draw_panel(10, 8, 590, 458, 24)
         self.draw_header()
 
-        self.draw_focus_card(22, 62, 578, 136, current, percent)
+        self.draw_focus_card(22, 62, 578, 136, current, percent, exp_remaining)
         self.draw_top_section(22, 158, active)
         self.draw_input_row(22, 285)
         self.draw_history_section(22, 350, completed)
@@ -442,7 +442,7 @@ class DynamicTodoIsland:
         self.canvas.create_text(552, 37, text="×", fill="#b9c1ce", font=(FONT_LATIN, 18))
         self.zone("quit", "", (534, 20, 574, 56))
 
-    def draw_focus_card(self, x: int, y: int, x2: int, y2: int, current: Todo | None, percent: int) -> None:
+    def draw_focus_card(self, x: int, y: int, x2: int, y2: int, current: Todo | None, percent: int, label: str = "") -> None:
         if y2 < 66:
             return
         self.rounded_rect(x, y, x2, y2, 10, fill=FOCUS, outline="#1c2731", width=1)
@@ -458,7 +458,7 @@ class DynamicTodoIsland:
         meta_img = self.make_text_image(meta, FONT_UI, 10, "#a8b2c2")
         self.image_refs.append(meta_img)
         self.canvas.create_image(x + 20, y + 51, anchor="w", image=meta_img)
-        self.draw_ring(x2 - 48, y + 39, 54, percent, exp_remaining)
+        self.draw_ring(x2 - 48, y + 39, 54, percent, label)
 
     def draw_top_section(self, x: int, y: int, todos: list[Todo]) -> None:
         self.canvas.create_text(x + 10, y, anchor="w", text="待办", fill=TEXT_SOFT, font=(FONT_UI, 10))
