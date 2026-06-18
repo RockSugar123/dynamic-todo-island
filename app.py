@@ -447,12 +447,12 @@ class DynamicTodoIsland:
             return
         self.rounded_rect(x, y, x2, y2, 10, fill=FOCUS, outline="#1c2731", width=1)
         if current:
-            title = f"聚焦：{short_text(current.title, 17)}"
+            title = short_text(current.title, 17)
             meta = f"添加于 {added_time(current)}"
         else:
             title = "今天的队列清空了"
             meta = "完成历史已保存在本机"
-        title_img = self.make_text_image(title, FONT_UI, 15, TEXT)
+        title_img = self.make_text_image(title, FONT_UI, 16, TEXT)
         self.image_refs.append(title_img)
         self.canvas.create_image(x + 20, y + 27, anchor="w", image=title_img)
         meta_img = self.make_text_image(meta, FONT_UI, 10, "#a8b2c2")
