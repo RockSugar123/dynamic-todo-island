@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dynamic Todo Island - 桌面顶部的待办灵动岛</title>
+  <style>
+    :root {
+      --panel: #05070b;
+      --focus: #091413;
+      --surface: #111720;
+      --surface-soft: #0c1118;
+      --line: #242b36;
+      --text: #eef3fa;
+      --text-soft: #c6ceda;
+      --muted: #8791a3;
+      --accent: #28e4cc;
+      --blue: #4f86ff;
+      --amber: #ffc052;
+      --red: #ff6571;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 5%, rgba(40, 228, 204, 0.18), transparent 26rem),
+        radial-gradient(circle at 82% 18%, rgba(79, 134, 255, 0.14), transparent 24rem),
+        linear-gradient(180deg, #05070b 0%, #081018 48%, #05070b 100%);
+      font-family: "Microsoft YaHei UI", "Segoe UI", system-ui, sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(198, 206, 218, 0.09);
+      background: rgba(5, 7, 11, 0.78);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-inner {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .brand img {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      box-shadow: 0 0 28px rgba(40, 228, 204, 0.25);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .hero {
+      width: min(1120px, calc(100% - 40px));
+      min-height: calc(100vh - 68px);
+      margin: 0 auto;
+      padding: 72px 0 64px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.98fr);
+      align-items: center;
+      gap: 56px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 7px rgba(40, 228, 204, 0.12);
+    }
+
+    h1 {
+      margin: 18px 0 18px;
+      max-width: 720px;
+      font-size: clamp(46px, 7vw, 84px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 640px;
+      color: var(--text-soft);
+      font-size: 18px;
+    }
+
+    .actions {
+      margin-top: 34px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .button {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      border: 1px solid rgba(198, 206, 218, 0.14);
+    }
+
+    .button.primary {
+      color: #031312;
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 18px 44px rgba(40, 228, 204, 0.22);
+    }
+
+    .button.secondary {
+      color: var(--text);
+      background: rgba(17, 23, 32, 0.8);
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 520px;
+    }
+
+    .island {
+      position: absolute;
+      left: 50%;
+      top: 8px;
+      width: min(460px, 100%);
+      transform: translateX(-50%);
+      border: 1px solid rgba(198, 206, 218, 0.12);
+      border-radius: 42px;
+      background: rgba(5, 7, 11, 0.92);
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.5), 0 0 58px rgba(40, 228, 204, 0.14);
+      padding: 12px 18px;
+      display: grid;
+      grid-template-columns: 52px 1fr 46px;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ring {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) 0 68%, #253142 68% 100%);
+      display: grid;
+      place-items: center;
+    }
+
+    .ring::after {
+      content: "";
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--panel);
+    }
+
+    .task-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .task-meta {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .check {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid rgba(40, 228, 204, 0.6);
+    }
+
+    .panel {
+      position: absolute;
+      left: 50%;
+      top: 110px;
+      width: min(520px, 100%);
+      transform: translateX(-50%);
+      border: 1px solid rgba(198, 206, 218, 0.12);
+      border-radius: 8px;
+      background: rgba(12, 17, 24, 0.92);
+      box-shadow: 0 36px 90px rgba(0, 0, 0, 0.5);
+      padding: 22px;
+    }
+
+    .focus {
+      border-radius: 8px;
+      border: 1px solid rgba(40, 228, 204, 0.18);
+      background: linear-gradient(135deg, rgba(9, 20, 19, 0.98), rgba(17, 23, 32, 0.96));
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 76px 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .app-icon {
+      width: 76px;
+      height: 76px;
+      border-radius: 8px;
+      object-fit: cover;
+      box-shadow: 0 0 34px rgba(40, 228, 204, 0.18);
+    }
+
+    .focus h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .focus p {
+      margin: 4px 0 0;
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    .rows {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .row {
+      min-height: 54px;
+      border-radius: 8px;
+      border: 1px solid rgba(198, 206, 218, 0.08);
+      background: rgba(17, 23, 32, 0.78);
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .dot.red { background: var(--red); }
+    .dot.amber { background: var(--amber); }
+    .dot.blue { background: var(--blue); }
+
+    .row small {
+      color: var(--muted);
+    }
+
+    .section {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 72px 0;
+    }
+
+    .section h2 {
+      margin: 0 0 16px;
+      font-size: clamp(30px, 5vw, 48px);
+      letter-spacing: 0;
+    }
+
+    .section-lead {
+      max-width: 720px;
+      margin: 0 0 34px;
+      color: var(--text-soft);
+      font-size: 17px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid rgba(198, 206, 218, 0.1);
+      border-radius: 8px;
+      background: rgba(17, 23, 32, 0.72);
+      padding: 22px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-soft);
+      font-size: 14px;
+    }
+
+    .install {
+      border-top: 1px solid rgba(198, 206, 218, 0.09);
+      border-bottom: 1px solid rgba(198, 206, 218, 0.09);
+      background: rgba(5, 7, 11, 0.42);
+    }
+
+    .code {
+      margin: 20px 0 0;
+      border-radius: 8px;
+      border: 1px solid rgba(198, 206, 218, 0.12);
+      background: #020408;
+      color: var(--text-soft);
+      padding: 18px;
+      overflow-x: auto;
+      font-family: Consolas, "Cascadia Mono", monospace;
+      font-size: 14px;
+    }
+
+    .footer {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 32px 0 46px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 880px) {
+      .nav-inner {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 0;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+      }
+
+      .hero {
+        min-height: auto;
+        grid-template-columns: 1fr;
+        padding-top: 54px;
+      }
+
+      .hero-visual {
+        min-height: 500px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .hero,
+      .section,
+      .footer,
+      .nav-inner {
+        width: min(100% - 28px, 1120px);
+      }
+
+      .island {
+        grid-template-columns: 44px 1fr 34px;
+        gap: 10px;
+        padding: 10px 12px;
+      }
+
+      .ring {
+        width: 44px;
+        height: 44px;
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .focus {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="nav">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="Dynamic Todo Island 首页">
+          <img src="./待办工具桌面图标设计.png" alt="Dynamic Todo Island 图标">
+          <span>Dynamic Todo Island</span>
+        </a>
+        <nav class="nav-links" aria-label="页面导航">
+          <a href="#features">功能</a>
+          <a href="#workflow">体验</a>
+          <a href="#install">运行</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div>
+          <div class="eyebrow"><span class="pulse"></span>Windows 桌面待办小工具</div>
+          <h1 id="hero-title">桌面顶部的待办灵动岛</h1>
+          <p class="lead">Dynamic Todo Island 把最高优先级任务藏在屏幕顶部，需要时轻轻唤出。它不像一整页任务软件那样打断你，只在你抬头的时候提醒下一件真正重要的事。</p>
+          <div class="actions">
+            <a class="button primary" href="./dist/DynamicTodoIsland.exe">下载 dist/DynamicTodoIsland.exe</a>
+            <a class="button secondary" href="#install">查看运行方式</a>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="软件界面预览">
+          <div class="island">
+            <div class="ring" aria-hidden="true"></div>
+            <div>
+              <p class="task-title">准备产品演示文稿</p>
+              <p class="task-meta">高优先级 · 剩余 5 项</p>
+            </div>
+            <div class="check" aria-hidden="true"></div>
+          </div>
+
+          <div class="panel">
+            <div class="focus">
+              <img class="app-icon" src="./待办工具桌面图标设计.png" alt="Dynamic Todo Island 桌面图标">
+              <div>
+                <h2>今日待办</h2>
+                <p>焦点卡片、优先级队列、完成历史和快速添加集中在一个轻量悬浮窗里。</p>
+              </div>
+            </div>
+            <div class="rows">
+              <div class="row"><span class="dot red"></span><span>回复关键邮件</span><small>高</small></div>
+              <div class="row"><span class="dot amber"></span><span>整理项目会议纪要</span><small>中</small></div>
+              <div class="row"><span class="dot blue"></span><span>复盘本周任务</span><small>低</small></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features" aria-labelledby="features-title">
+        <h2 id="features-title">不抢注意力，只托住下一步</h2>
+        <p class="section-lead">它是一个单文件 Tkinter 桌面组件，围绕“隐藏、唤出、聚焦、完成”四个动作设计，适合常驻桌面又不想被任务管理器淹没的人。</p>
+        <div class="grid">
+          <article class="card">
+            <h3>顶部隐藏</h3>
+            <p>平时只露出 10px 触发边，鼠标靠近屏幕顶部时自动展开为紧凑灵动岛。</p>
+          </article>
+          <article class="card">
+            <h3>优先级聚焦</h3>
+            <p>高、中、低优先级用颜色点区分，活跃任务按优先级和创建时间自动排序。</p>
+          </article>
+          <article class="card">
+            <h3>系统托盘</h3>
+            <p>托盘图标常驻，右键可以显示窗口或退出；窗口本身不会占用下方任务栏。</p>
+          </article>
+          <article class="card">
+            <h3>完成历史</h3>
+            <p>完成的任务会进入历史区域，保留时间记录，也支持一键撤回误操作。</p>
+          </article>
+          <article class="card">
+            <h3>本机数据</h3>
+            <p>待办保存在 %LOCALAPPDATA% 的 JSON 文件里，不需要账户、服务端或同步配置。</p>
+          </article>
+          <article class="card">
+            <h3>桌面启动</h3>
+            <p>项目支持 PyInstaller 打包成 exe，并自动创建带图标的桌面快捷方式。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section install" id="workflow" aria-labelledby="workflow-title">
+        <h2 id="workflow-title">从一条任务到一个节奏</h2>
+        <p class="section-lead">点击紧凑模式展开完整列表，添加新待办、选择紧急程度、滚轮查看更多任务和历史。右键拖动可以临时调整悬浮窗位置，退出则交给系统托盘。</p>
+      </section>
+
+      <section class="section" id="install" aria-labelledby="install-title">
+        <h2 id="install-title">运行方式</h2>
+        <p class="section-lead">如果已经打包，双击桌面上的 Dynamic Todo Island 图标即可启动。开发时也可以直接运行 Python 源码。</p>
+        <pre class="code">powershell -ExecutionPolicy Bypass -File .\build_exe.ps1
+.\dist\DynamicTodoIsland.exe</pre>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Dynamic Todo Island · Python + Tkinter + Pillow + pystray
+    </footer>
+  </div>
+</body>
+</html>

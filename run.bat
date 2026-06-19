@@ -1,3 +1,7 @@
 @echo off
 cd /d "%~dp0"
-start "" pythonw app.py
+if exist "dist\DynamicTodoIsland.exe" (
+    start "" "dist\DynamicTodoIsland.exe"
+) else (
+    start "" pythonw app.py
+)

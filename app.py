@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ctypes
 import json
+import sys
 import threading
 import uuid
 from dataclasses import asdict, dataclass
@@ -15,6 +16,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageTk
 
 APP_DIR = Path.home() / "AppData" / "Local" / "DynamicTodoIsland"
 DATA_FILE = APP_DIR / "todos.json"
+APP_ICON = "icon.ico"
 
 PRIORITY_WEIGHT = {"high": 3, "medium": 2, "low": 1}
 PRIORITY_DOT = {"high": "#ff5a66", "medium": "#ffb84d", "low": "#3d7cff"}
@@ -34,6 +36,55 @@ RING_MUTED = "#253142"
 
 FONT_UI = "Microsoft YaHei UI"
 FONT_LATIN = "Segoe UI"
+
+GWL_EXSTYLE = -20
+WS_EX_TOOLWINDOW = 0x00000080
+WS_EX_APPWINDOW = 0x00040000
+SWP_NOSIZE = 0x0001
+SWP_NOMOVE = 0x0002
+SWP_NOZORDER = 0x0004
+SWP_FRAMECHANGED = 0x0020
+SWP_NOACTIVATE = 0x0010
+
+
+def resource_path(name: str) -> Path:
+    base_dir = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    return base_dir / name
+
+
+def load_icon_image(size: tuple[int, int] | None = None) -> Image.Image:
+    with Image.open(resource_path(APP_ICON)) as source:
+        image = source.convert("RGBA")
+    if size is not None:
+        image = image.resize(size, Image.Resampling.LANCZOS)
+    return image
+
+
+def taskbar_hidden_exstyle(style: int) -> int:
+    return (style & ~WS_EX_APPWINDOW) | WS_EX_TOOLWINDOW
+
+
+def hide_window_from_taskbar(root: Tk) -> None:
+    if sys.platform != "win32":
+        return
+
+    root.update_idletasks()
+    user32 = ctypes.windll.user32
+    hwnd = user32.GetParent(root.winfo_id()) or root.winfo_id()
+    get_window_long = getattr(user32, "GetWindowLongPtrW", user32.GetWindowLongW)
+    set_window_long = getattr(user32, "SetWindowLongPtrW", user32.SetWindowLongW)
+
+    style = get_window_long(hwnd, GWL_EXSTYLE)
+    set_window_long(hwnd, GWL_EXSTYLE, taskbar_hidden_exstyle(style))
+    user32.SetWindowPos(
+        hwnd,
+        0,
+        0,
+        0,
+        0,
+        0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED,
+    )
 
 
 @dataclass
@@ -164,6 +215,10 @@ class DynamicTodoIsland:
                 pass
         self.root = Tk()
         self.root.title("Dynamic Todo Island")
+        try:
+            self.root.iconbitmap(str(resource_path(APP_ICON)))
+        except Exception:
+            pass
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.configure(bg=TRANSPARENT)
@@ -171,6 +226,10 @@ class DynamicTodoIsland:
             self.root.attributes("-transparentcolor", TRANSPARENT)
         except Exception:
             self.root.configure(bg=PANEL)
+        try:
+            hide_window_from_taskbar(self.root)
+        except Exception:
+            pass
 
         self.compact_size = (460, 84)
         self.expanded_size = (600, 470)
@@ -691,12 +750,7 @@ class DynamicTodoIsland:
         self.drag_start = (event.x_root, event.y_root)
 
     def _make_tray_icon(self) -> Image.Image:
-        size = 32
-        image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(image)
-        pad = 5
-        draw.ellipse((pad, pad, size - pad, size - pad), fill=ACCENT)
-        return image
+        return load_icon_image((64, 64))
 
     def _tray_show(self, _icon=None, _item=None) -> None:
         self.root.after(0, self.reveal_compact)
